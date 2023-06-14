@@ -1,5 +1,6 @@
 import Header from "../Pages/Home/Header/Header";
 import Navbar from "../Pages/Home/Navbar/Navbar";
+import Services from "../Pages/Home/Services/Services";
 
 const Main = () => {
     return (
@@ -7,6 +8,7 @@ const Main = () => {
             <div >
                 <Navbar />
                 <Header />
+                <Services />
             </div>
         </>
     );
