@@ -6,7 +6,7 @@ const Navbar = () => {
         <>
             <div className="bg-slate-100 flex justify-between items-center px-8 py-4 w-full">
                 <Link to={'/'}><h4 className="text-3xl bg-gradient-to-r from-[#c9b501] via-[#E80040] to-[#c9b501] text-transparent bg-clip-text">Task Spark</h4></Link>
-                <Button label={'Sign In'} />
+                <Button label={'Try Now'} />
             </div>
         </>
     );
