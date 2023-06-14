@@ -4,6 +4,7 @@ import {
 import Main from "../Layout/Main";
 import Home from "../Pages/Home/Home/Home";
 import Details from "../Pages/Home/ImportantOfTaskManagement/Details";
+import ToDoPage from "../Pages/ToDoPage/ToDoPage";
 
 const router = createBrowserRouter( [
     {
@@ -19,6 +20,10 @@ const router = createBrowserRouter( [
                 element: <Details />
             }
         ]
+    },
+    {
+        path: 'my-to-do-list',
+        element: <ToDoPage />
     }
 ])
 
