@@ -1,15 +1,12 @@
-import Header from "../Pages/Home/Header/Header";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 import Navbar from "../Pages/Home/Navbar/Navbar";
-import Services from "../Pages/Home/Services/Services";
 
 const Main = () => {
     return (
         <>
-            <div >
-                <Navbar />
-                <Header />
-                <Services />
-            </div>
+            <Navbar />
+            <Outlet />
+            <ScrollRestoration />
         </>
     );
 };
