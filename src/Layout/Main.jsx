@@ -1,3 +1,4 @@
+import Header from "../Pages/Home/Header/Header";
 import Navbar from "../Pages/Home/Navbar/Navbar";
 
 const Main = () => {
@@ -5,6 +6,7 @@ const Main = () => {
         <>
             <div >
                 <Navbar />
+                <Header />
             </div>
         </>
     );
