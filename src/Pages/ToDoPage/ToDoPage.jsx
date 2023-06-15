@@ -12,6 +12,7 @@ const ToDoPage = () => {
 
     const currentDay = { weekday: 'long' };
     const currentDayName = new Date().toLocaleString('en-US', currentDay);
+    const addedTime = new Date().toLocaleString('en-Us', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, hour: 'numeric', minute: 'numeric'})
 
     const showLocalTime = () => {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -20,7 +21,6 @@ const ToDoPage = () => {
 
         const updateTime = () => {
             const currentTime = new Date().toLocaleString('en-US', options);
-
             if (timeElement) {
                 timeElement.textContent = currentTime;
             }
@@ -48,7 +48,7 @@ const ToDoPage = () => {
     const handleAddTask = data => {
         const userEmail = localStorage.getItem('email');
         const { title, description } = data;
-        const newData = { email: userEmail, title, description };
+        const newData = { email: userEmail, title, description, addedTime: addedTime };
         fetch('http://localhost:4000/taskCollection', {
             method: 'POST',
             headers: {
@@ -190,6 +190,7 @@ const ToDoPage = () => {
                                 <th>#</th>
                                 <th>Title</th>
                                 <th>Description</th>
+                                <th>Time</th>
                                 <th>Status</th>
                                 <th>Action</th>
                             </tr>
@@ -200,6 +201,7 @@ const ToDoPage = () => {
                                     <th>{index + 1}</th>
                                     <td className={task.status === 'Completed' && 'line-through'} >{task.title}</td>
                                     <td>{task.description}</td>
+                                    <td>{task.addedTime}</td>
                                     <td className={task.status === 'Completed' ? 'font-light text-green-700' : 'font-light text-orange-400'
                                     }>{task.status ? task.status : 'Pending'}</td>
                                     <td>
