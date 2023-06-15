@@ -12,7 +12,7 @@ const ToDoPage = () => {
 
     const currentDay = { weekday: 'long' };
     const currentDayName = new Date().toLocaleString('en-US', currentDay);
-    const addedTime = new Date().toLocaleString('en-Us', {timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, hour: 'numeric', minute: 'numeric'})
+    const addedTime = new Date().toLocaleString('en-Us', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, hour: 'numeric', minute: 'numeric' })
 
     const showLocalTime = () => {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -38,7 +38,7 @@ const ToDoPage = () => {
     const [selectTaskId, setSelectTaskId] = useState(null);
 
     useEffect(() => {
-        fetch(`http://localhost:4000/tasks/${user}`)
+        fetch(`https://task-spark-server.vercel.app/tasks/${user}`)
             .then(res => res.json())
             .then(data => {
                 setTasks(data);
@@ -49,6 +49,7 @@ const ToDoPage = () => {
         const userEmail = localStorage.getItem('email');
         const { title, description } = data;
         const newData = { email: userEmail, title, description, addedTime: addedTime };
+
         fetch('http://localhost:4000/taskCollection', {
             method: 'POST',
             headers: {
@@ -58,16 +59,26 @@ const ToDoPage = () => {
         })
             .then(res => res.json())
             .then(() => {
-                setTasks(prevTasks => [...prevTasks, newData]);
-                setShowModal(false);
-                reset();
+                fetch(`http://localhost:4000/tasks/${user}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setTasks(data);
+                        setShowModal(false);
+                        reset();
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
             })
+            .catch(error => {
+                console.error(error);
+            });
+    };
 
-    }
 
     const handleStatus = async (id) => {
         try {
-            const response = await fetch(`http://localhost:4000/task/update/${id}`, {
+            const response = await fetch(`https://task-spark-server.vercel.app/task/update/${id}`, {
                 method: 'PATCH'
             });
             if (response.ok) {
@@ -90,12 +101,12 @@ const ToDoPage = () => {
         setShowUpdateModal(true);
     }
 
-    const handleUpdateTask = async(data) => {
+    const handleUpdateTask = async (data) => {
         console.log(data);
         setShowUpdateModal(false);
 
         try {
-            const response = await fetch(`http://localhost:4000/update/${selectTaskId}`, {
+            const response = await fetch(`https://task-spark-server.vercel.app/update/${selectTaskId}`, {
                 method: 'PUT',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify(data)
@@ -119,7 +130,7 @@ const ToDoPage = () => {
 
 
     const handleDelete = id => {
-        fetch(`http://localhost:4000/task/${id}`, {
+        fetch(`https://task-spark-server.vercel.app/task/${id}`, {
             method: 'DELETE'
         })
             .then(res => res.json())
