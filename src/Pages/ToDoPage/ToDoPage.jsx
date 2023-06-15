@@ -3,7 +3,10 @@ import './ToDoPage.css';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { MdCancel } from 'react-icons/md'
+import { MdCancel } from 'react-icons/md';
+import { AiFillDelete, AiFillEdit } from 'react-icons/ai';
+import { FcApproval } from "react-icons/fc";
+import approval from '../../assets/icons/approval.png';
 
 const ToDoPage = () => {
 
@@ -28,15 +31,24 @@ const ToDoPage = () => {
     showLocalTime();
 
     const user = localStorage.getItem('email');
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit, reset } = useForm();
     const [showModal, setShowModal] = useState(false);
+    const [showUpdateModal, setShowUpdateModal] = useState(false);
     const [tasks, setTasks] = useState([]);
+    const [selectTaskId, setSelectTaskId] = useState(null);
+
+    useEffect(() => {
+        fetch(`http://localhost:4000/tasks/${user}`)
+            .then(res => res.json())
+            .then(data => {
+                setTasks(data);
+            })
+    }, [user])
 
     const handleAddTask = data => {
         const userEmail = localStorage.getItem('email');
         const { title, description } = data;
         const newData = { email: userEmail, title, description };
-        console.log(newData);
         fetch('http://localhost:4000/taskCollection', {
             method: 'POST',
             headers: {
@@ -45,20 +57,71 @@ const ToDoPage = () => {
             body: JSON.stringify(newData)
         })
             .then(res => res.json())
-            .then(result => {
-                console.log(result);
+            .then(() => {
+                setTasks(prevTasks => [...prevTasks, newData]);
+                setShowModal(false);
+                reset();
             })
 
     }
 
-    useEffect(()=>{
-        fetch(`http://localhost:4000/tasks/${user}`)
-        .then(res => res.json())
-        .then(data => {
-            setTasks(data);
-        })
-    },[user])
+    const handleStatus = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:4000/task/update/${id}`, {
+                method: 'PATCH'
+            });
+            if (response.ok) {
+                const updatedTask = tasks.find((task) => task._id === id);
+                if (updatedTask) {
+                    updatedTask.status = 'Completed';
+                    setTasks([...tasks]);
+                }
 
+            } else {
+                console.error('Error updating task');
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    
+    const handleIdAndModal = id => {
+        setSelectTaskId(id);
+        setShowUpdateModal(true);
+    }
+
+    const handleUpdateTask = data => {
+        console.log(data);
+        setShowUpdateModal(false);
+
+        fetch(`http://localhost:4000/update/${selectTaskId}`, {
+            method: 'PUT',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.json())
+            .then(updatedTask => {
+                const updatedTasks = tasks.map(task =>
+                    task._id === updatedTask._id ? { ...task, ...updatedTask } : task
+                );
+
+                setTasks(updatedTasks);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    };
+
+
+    const handleDelete = id => {
+        fetch(`http://localhost:4000/task/${id}`, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(() => {
+                setTasks(prevTasks => prevTasks.filter(task => task._id !== id));
+            })
+    }
 
     return (
         <>
@@ -117,7 +180,7 @@ const ToDoPage = () => {
                 <div className="overflow-x-auto">
                     <table className="table">
                         {/* head */}
-                        <thead>
+                        <thead className='text-center'>
                             <tr>
                                 <th>#</th>
                                 <th>Title</th>
@@ -126,17 +189,72 @@ const ToDoPage = () => {
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className='text-center'>
                             {
-                                tasks && tasks.map((task,index) => <tr key={task._id} className="hover">
-                                <th>{index+1}</th>
-                                <td>{task.title}</td>
-                                <td>{task.description}</td>
-                                <td>Pending</td>
-                                <td>
+                                tasks && tasks.map((task, index) => <tr key={task._id} className="hover">
+                                    <th>{index + 1}</th>
+                                    <td>{task.title}</td>
+                                    <td>{task.description}</td>
+                                    <td className={task.status === 'Completed' ? 'font-light text-green-700' : 'font-light text-orange-400'
+                                    }>{task.status ? task.status : 'Pending'}</td>
+                                    <td>
+                                        <div className="flex justify-center items-center gap-2">
+                                            <button onClick={() => handleStatus(task._id)}>
+                                                {
+                                                    task.status === 'Completed' ? <FcApproval size={'21px'} /> : <img className='h-5 w-5' src={approval} />
+                                                }
 
-                                </td>
-                            </tr>)
+                                            </button>
+                                            <button onClick={() => handleIdAndModal(task._id)}><AiFillEdit size={'25px'} /></button>
+                                            {
+                                                showUpdateModal ? (
+                                                    <>
+                                                        <div className="flex justify-center items-center overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
+                                                            <div className="relative w-auto my-6 mx-auto max-w-3xl">
+                                                                <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                                                                    <div className="flex items-center justify-end p-5 border-b border-solid border-gray-300 rounded-t ">
+                                                                        <button
+                                                                            className="bg-transparent border-0 text-black float-right"
+                                                                            onClick={() => setShowUpdateModal(false)}
+                                                                        >
+                                                                            <MdCancel size={'30px'} />
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="relative p-6 flex-auto">
+                                                                        <form onSubmit={handleSubmit(handleUpdateTask)}>
+                                                                            <div className="form-control me-4">
+                                                                                <label className="label">
+                                                                                    <span className="label-text font-semibold">Title</span>
+                                                                                </label>
+                                                                                <input type="text" placeholder='Enter title' className="input input-bordered" {...register("title", { required: true })} />
+                                                                            </div>
+                                                                            <div className="form-control me-4">
+                                                                                <label className="label">
+                                                                                    <span className="label-text font-semibold">Description</span>
+                                                                                </label>
+                                                                                <textarea type="text" placeholder="Write description..." className="textarea textarea-bordered textarea-lg w-full" {...register("description", { required: true })} />
+                                                                            </div>
+                                                                            <div className="form-control me-4">
+                                                                                <label className="label">
+                                                                                    <span className="label-text font-semibold">Status</span>
+                                                                                </label>
+                                                                                <input type="text" placeholder="Write status..." className="textarea textarea-bordered textarea-lg w-full" {...register("status", { required: true })} />
+                                                                            </div>
+                                                                            <div className="form-control mt-4">
+                                                                                <input className="py-3 uppercase font-bold text-xl rounded-xl border-0 mt-2 bg-[#dc034158] cursor-pointer" type="submit" value="Update" />
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                ) : null
+                                            }
+                                            <button onClick={() => handleDelete(task._id)}><AiFillDelete color='red' size={'25px'} /></button>
+                                        </div>
+                                    </td>
+                                </tr>)
                             }
                         </tbody>
                     </table>
