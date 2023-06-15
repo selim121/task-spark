@@ -71,9 +71,9 @@ const ToDoPage = () => {
                 method: 'PATCH'
             });
             if (response.ok) {
-                const updatedTask = tasks.find((task) => task._id === id);
-                if (updatedTask) {
-                    updatedTask.status = 'Completed';
+                const updatedStatus = tasks.find((task) => task._id === id);
+                if (updatedStatus) {
+                    updatedStatus.status = 'Completed';
                     setTasks([...tasks]);
                 }
 
@@ -84,32 +84,37 @@ const ToDoPage = () => {
             console.error(error);
         }
     };
-    
+
     const handleIdAndModal = id => {
         setSelectTaskId(id);
         setShowUpdateModal(true);
     }
 
-    const handleUpdateTask = data => {
+    const handleUpdateTask = async(data) => {
         console.log(data);
         setShowUpdateModal(false);
 
-        fetch(`http://localhost:4000/update/${selectTaskId}`, {
-            method: 'PUT',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(res => res.json())
-            .then(updatedTask => {
-                const updatedTasks = tasks.map(task =>
-                    task._id === updatedTask._id ? { ...task, ...updatedTask } : task
-                );
-
-                setTasks(updatedTasks);
-            })
-            .catch(error => {
-                console.error(error);
+        try {
+            const response = await fetch(`http://localhost:4000/update/${selectTaskId}`, {
+                method: 'PUT',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(data)
             });
+            if (response.ok) {
+                const updatedTask = tasks.find((task) => task._id === selectTaskId);
+                if (updatedTask) {
+                    updatedTask.title = data.title;
+                    updatedTask.description = data.description
+                    setTasks([...tasks]);
+                }
+
+            } else {
+                console.error('Error updating task');
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
     };
 
 
@@ -131,7 +136,7 @@ const ToDoPage = () => {
                 <h4 className="text-2xl hidden md:block">Welcome, {user}</h4>
             </div>
             <div className="my-5 flex items-center justify-center gap-8 px-5 md:px-0">
-                <h1 className="text-5xl">
+                <h1 className="text-2xl md:text-5xl">
                     Add <span className="text-[#c9b501]">{currentDayName}</span> schedule
                 </h1>
                 <div className="">
@@ -193,7 +198,7 @@ const ToDoPage = () => {
                             {
                                 tasks && tasks.map((task, index) => <tr key={task._id} className="hover">
                                     <th>{index + 1}</th>
-                                    <td>{task.title}</td>
+                                    <td className={task.status === 'Completed' && 'line-through'} >{task.title}</td>
                                     <td>{task.description}</td>
                                     <td className={task.status === 'Completed' ? 'font-light text-green-700' : 'font-light text-orange-400'
                                     }>{task.status ? task.status : 'Pending'}</td>
@@ -205,7 +210,7 @@ const ToDoPage = () => {
                                                 }
 
                                             </button>
-                                            <button onClick={() => handleIdAndModal(task._id)}><AiFillEdit size={'25px'} /></button>
+                                            <button disabled={task.status === 'Completed'} className='disabled:opacity-50' onClick={() => handleIdAndModal(task._id)}><AiFillEdit size={'25px'} /></button>
                                             {
                                                 showUpdateModal ? (
                                                     <>
@@ -233,12 +238,6 @@ const ToDoPage = () => {
                                                                                     <span className="label-text font-semibold">Description</span>
                                                                                 </label>
                                                                                 <textarea type="text" placeholder="Write description..." className="textarea textarea-bordered textarea-lg w-full" {...register("description", { required: true })} />
-                                                                            </div>
-                                                                            <div className="form-control me-4">
-                                                                                <label className="label">
-                                                                                    <span className="label-text font-semibold">Status</span>
-                                                                                </label>
-                                                                                <input type="text" placeholder="Write status..." className="textarea textarea-bordered textarea-lg w-full" {...register("status", { required: true })} />
                                                                             </div>
                                                                             <div className="form-control mt-4">
                                                                                 <input className="py-3 uppercase font-bold text-xl rounded-xl border-0 mt-2 bg-[#dc034158] cursor-pointer" type="submit" value="Update" />
